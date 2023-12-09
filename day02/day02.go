@@ -1,11 +1,10 @@
 package main
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "strconv"
-    "strings"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -85,7 +84,7 @@ func partOne(input []string) (int, error) {
         }
     }
 
-    result, err := sum(validGames)
+    result, err := sumSlice(validGames)
     if err != nil {
         panic(err)
     }
@@ -137,36 +136,10 @@ func partTwo(input []string) (int, error) {
         powers = append(powers, cubeSetPower)
     }
 
-    result, err := sum(powers)
+    result, err := sumSlice(powers)
     if err != nil {
         panic(err)
     }
     
     return result, nil
 }
-
-func readLines(path string) ([]string, error) {
-    file, err := os.Open(path)
-    if err != nil {
-        return nil, err
-    }
-    defer file.Close()
-
-    var lines []string
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        lines = append(lines, scanner.Text())
-    }
-
-    return lines, scanner.Err()
-}
-
-func sum(nums []int) (int, error) {
-    sum := 0
-
-    for _, i := range nums {
-        sum += i
-    }
-
-    return sum, nil
-} 
