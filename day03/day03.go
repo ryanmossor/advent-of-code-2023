@@ -33,10 +33,17 @@ func main() {
         os.Exit(1)
     }
     fmt.Fprintf(os.Stdout, "Part 1: %d\n", partOneResult)
+
+    partTwoResult, err := partTwo(lines)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "error: %v\n", err)
+        os.Exit(1)
+    }
+    fmt.Fprintf(os.Stdout, "Part 2: %d\n", partTwoResult)
+
 }
 
 func partOne(lines []string) (int, error) {
-    numbersRegex := regexp.MustCompile(`[0-9]*`)
     symbolsRegex := regexp.MustCompile(`[^0-9a-zA-Z.]`)
     var symbols []symbol
     var parts []part
@@ -53,29 +60,7 @@ func partOne(lines []string) (int, error) {
             }
         }
 
-
-        if matchedNumbers := numbersRegex.FindAllStringIndex(line, -1); matchedNumbers != nil {
-            for _, idx := range matchedNumbers {
-                numAsStr := line[idx[0]:idx[1]]
-                if numAsStr == "" {
-                    continue
-                }
-
-                num, err := strconv.Atoi(numAsStr) 
-                if err != nil {
-                    panic(err)
-                }
-
-                p := part { 
-                    numStr: numAsStr,
-                    partNumber: num,
-                    index: idx[0],
-                    lineNumber: lineNum,
-                }
-
-                parts = append(parts, p)
-            }
-        }
+        parts = append(parts, parseNumbers(line, lineNum)...)
     }
 
     total := 0
@@ -93,4 +78,76 @@ func partOne(lines []string) (int, error) {
     }
 
     return total, nil
+}
+
+func partTwo(lines []string) (int, error) {
+    var symbols []symbol
+    var parts []part
+
+    for lineNum, line := range lines {
+        for idx, char := range line {
+            if char == '*' {
+                s := symbol{
+                	sym: string(char),
+                	index: idx,
+                	lineNumber: lineNum,
+                }
+                symbols = append(symbols, s)
+            }
+        }
+
+        parts = append(parts, parseNumbers(line, lineNum)...)
+    }
+
+    total := 0
+    for _, asterisk := range symbols {
+        var adjacentPartNumbers []int
+
+        for _, part := range parts {
+            if part.lineNumber >= asterisk.lineNumber - 1 && part.lineNumber <= asterisk.lineNumber + 1 {
+                lowerBound := part.index - 1
+                upperBound := part.index + len(part.numStr)
+
+                if asterisk.index >= lowerBound && asterisk.index <= upperBound {
+                    adjacentPartNumbers = append(adjacentPartNumbers, part.partNumber)
+                }
+            }
+        }
+
+        if len(adjacentPartNumbers) == 2 {
+            total += adjacentPartNumbers[0] * adjacentPartNumbers[1]
+        }
+    }
+
+    return total, nil
+}
+
+func parseNumbers(line string, lineNum int) ([]part) {
+    numbersRegex := regexp.MustCompile(`[0-9]*`)
+    var parts []part
+
+    if matchedNumbers := numbersRegex.FindAllStringIndex(line, -1); matchedNumbers != nil {
+        for _, idx := range matchedNumbers {
+            numAsStr := line[idx[0]:idx[1]]
+            if numAsStr == "" {
+                continue
+            }
+
+            num, err := strconv.Atoi(numAsStr) 
+            if err != nil {
+                panic(err)
+            }
+
+            p := part { 
+                numStr: numAsStr,
+                partNumber: num,
+                index: idx[0],
+                lineNumber: lineNum,
+            }
+
+            parts = append(parts, p)
+        }
+    }
+
+    return parts
 }
